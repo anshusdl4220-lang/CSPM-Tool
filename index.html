@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CSPM Security Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Interactive attack graph library -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/styles/vis-network.min.css"
+    >
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <h2>☁ CSPM</h2>
+        <p>Cloud Security</p>
+
+        <nav>
+            <a href="#overview">Overview</a>
+            <a href="#assets">Cloud Assets</a>
+            <a href="#findings">Security Findings</a>
+            <a href="#events">Threat Events</a>
+            <a href="#attack-paths">Attack Path Analysis</a>
+            <a href="#remediations">Remediation</a>
+            <a href="#compliance">Compliance</a>
+        </nav>
+
+        <p class="status">● API Status</p>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <div>
+                <h1>Cloud Security Posture</h1>
+                <p>Asset inventory, security findings and risk analysis</p>
+            </div>
+
+            <button id="refreshBtn" type="button">
+                Refresh Data
+            </button>
+        </header>
+
+        <!-- Overview -->
+        <section id="overview" class="cards">
+            <article class="card">
+                <p>Total Assets</p>
+                <h2 id="assetCount">0</h2>
+            </article>
+
+            <article class="card">
+                <p>Total Findings</p>
+                <h2 id="findingCount">0</h2>
+            </article>
+
+            <article class="card critical">
+                <p>Critical Findings</p>
+                <h2 id="criticalCount">0</h2>
+            </article>
+
+            <article class="card">
+                <p>Security Events</p>
+                <h2 id="eventCount">0</h2>
+            </article>
+        </section>
+
+        <p id="message" role="status">
+            Loading CSPM data...
+        </p>
+
+        <!-- Cloud Assets -->
+        <section id="assets" class="panel">
+            <h2>Cloud Assets</h2>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset ID</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Security Findings -->
+        <section id="findings" class="panel">
+            <h2>Security Findings</h2>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Issue</th>
+                            <th>Severity</th>
+                            <th>Risk Score</th>
+                            <th>Risk Level</th>
+                        </tr>
+                    </thead>
+                    <tbody id="findingRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Threat Events -->
+        <section id="events" class="panel">
+            <h2>Recent Threat Events</h2>
+            <div id="eventList"></div>
+        </section>
+
+        <!-- Attack Path Analysis -->
+        <section id="attack-paths" class="panel">
+            <h2>Visual Attack Path Analysis</h2>
+            <p>Explore modeled relationships between cloud assets.</p>
+
+            <button id="loadAttackPath" type="button">
+                Load Attack Graph
+            </button>
+
+            <p id="graphStatus" role="status">
+                Click Load Attack Graph to retrieve the graph.
+            </p>
+
+            <div
+                id="attackGraph"
+                role="region"
+                aria-label="Interactive cloud asset relationship graph"
+            ></div>
+
+            <div class="graph-legend">
+                <span>
+                    <i class="legend-dot normal"></i>
+                    Normal asset
+                </span>
+                <span>
+                    <i class="legend-dot risky"></i>
+                    High-risk asset
+                </span>
+                <span>
+                    <i class="legend-dot critical"></i>
+                    Critical path
+                </span>
+            </div>
+
+            <h3>Attack Paths</h3>
+            <div id="graphPathResults"></div>
+        </section>
+
+        <!-- Remediation -->
+        <section id="remediations" class="panel">
+            <h2>Security Remediation Recommendations</h2>
+            <p>Recommended actions to reduce cloud security risks.</p>
+
+            <button id="loadRemediations" type="button">
+                Load Recommendations
+            </button>
+
+            <p id="remediationStatus" role="status">
+                Click the button to load recommendations.
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Security Issue</th>
+                            <th>Risk</th>
+                            <th>Priority</th>
+                            <th>Recommended Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="remediationRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Compliance -->
+        <section id="compliance" class="panel">
+            <h2>Compliance Results</h2>
+            <p>
+                Analyze security findings against your configured
+                compliance rules and review saved results.
+            </p>
+
+            <div class="compliance-summary">
+                <article class="summary-card">
+                    <h3>Total Results</h3>
+                    <p id="totalCompliance">0</p>
+                </article>
+
+                <article class="summary-card">
+                    <h3>Failed Controls</h3>
+                    <p id="failedCompliance">0</p>
+                </article>
+
+                <article class="summary-card">
+                    <h3>Passed Controls</h3>
+                    <p id="passedCompliance">0</p>
+                </article>
+
+                <article class="summary-card">
+                    <h3>Needs Review</h3>
+                    <p id="reviewCompliance">0</p>
+                </article>
+            </div>
+
+            <div class="compliance-actions">
+                <button
+                    id="runComplianceAnalysis"
+                    type="button"
+                >
+                    Run Compliance Analysis
+                </button>
+
+                <button
+                    id="loadCompliance"
+                    type="button"
+                >
+                    Load Compliance Results
+                </button>
+            </div>
+
+            <p id="complianceStatus" role="status" aria-live="polite">
+                Select an action to continue.
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset ID</th>
+                            <th>Finding</th>
+                            <th>Severity</th>
+                            <th>Framework</th>
+                            <th>Control ID</th>
+                            <th>Control Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complianceRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Load app.js once, after dashboard elements exist -->
+    <script src="app.js"></script>
+</body>
+</html>
